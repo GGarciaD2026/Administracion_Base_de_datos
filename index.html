@@ -1,623 +1,925 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Actividad Arquitectos NoSQL: comparación y selección de modelos para una plataforma de comercio, red social e IoT.">
-  <title>Arquitectos NoSQL | Comité de arquitectura</title>
-  <style>
-    :root {
-      --ink: #182230;
-      --muted: #5c6878;
-      --paper: #f4f7fb;
-      --surface: #ffffff;
-      --line: #dce3ec;
-      --blue: #2457a7;
-      --blue-soft: #eaf1fc;
-      --green: #176b4b;
-      --green-soft: #e8f5ee;
-      --amber: #855600;
-      --amber-soft: #fff5df;
-      --code: #111827;
-      --shadow: 0 8px 24px rgba(24, 34, 48, .07);
-    }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      background: var(--paper);
-      color: var(--ink);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      line-height: 1.6;
-    }
-    header {
-      color: white;
-      background: linear-gradient(125deg, #142c50, #2457a7);
-      padding: 48px 22px 42px;
-    }
-    .hero, main, footer { max-width: 1120px; margin: 0 auto; }
-    .eyebrow {
-      margin: 0 0 10px;
-      color: #d7e5ff;
-      text-transform: uppercase;
-      letter-spacing: .12em;
-      font-size: .78rem;
-      font-weight: 800;
-    }
-    h1 { margin: 0; font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.1; }
-    .subtitle { max-width: 760px; color: #e6eefb; font-size: 1.08rem; margin: 16px 0 0; }
-    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
-    .meta span {
-      border: 1px solid rgba(255,255,255,.28);
-      background: rgba(255,255,255,.1);
-      border-radius: 999px;
-      padding: 6px 12px;
-      font-size: .88rem;
-    }
-    main { padding: 28px 20px 60px; }
-    nav {
-      display: flex; flex-wrap: wrap; gap: 8px;
-      background: var(--surface); border: 1px solid var(--line);
-      border-radius: 14px; padding: 12px; margin-bottom: 28px;
-      box-shadow: var(--shadow);
-    }
-    nav a {
-      color: var(--blue); text-decoration: none; font-size: .9rem;
-      font-weight: 700; padding: 7px 10px; border-radius: 8px;
-    }
-    nav a:hover { background: var(--blue-soft); }
-    section { scroll-margin-top: 18px; margin: 30px 0; }
-    h2 { font-size: 1.65rem; margin: 0 0 12px; line-height: 1.25; }
-    h3 { margin: 0 0 8px; font-size: 1.2rem; }
-    h4 { margin: 18px 0 6px; font-size: 1rem; }
-    p { margin: 8px 0 12px; }
-    .lead { color: var(--muted); max-width: 900px; }
-    .panel, .need-card, .model-card {
-      background: var(--surface); border: 1px solid var(--line);
-      border-radius: 16px; padding: 22px; box-shadow: var(--shadow);
-    }
-    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-    .three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-    .tag {
-      display: inline-block; border-radius: 999px; padding: 4px 10px;
-      font-size: .78rem; font-weight: 800; background: var(--blue-soft); color: var(--blue);
-    }
-    .tag.good { background: var(--green-soft); color: var(--green); }
-    .tag.warn { background: var(--amber-soft); color: var(--amber); }
-    .need-card { margin: 18px 0; }
-    .need-head {
-      display: flex; justify-content: space-between; align-items: flex-start;
-      gap: 14px; flex-wrap: wrap; margin-bottom: 10px;
-    }
-    .model-name { color: var(--blue); font-weight: 800; }
-    .field { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 12px; }
-    .field strong { display: block; margin-bottom: 4px; }
-    .why-not { background: #f7f9fc; border-left: 4px solid #9aa9bd; padding: 10px 14px; border-radius: 7px; }
-    pre {
-      overflow-x: auto; white-space: pre; background: var(--code); color: #e5edf7;
-      border-radius: 11px; padding: 16px; font-size: .86rem; line-height: 1.55;
-      margin: 10px 0 4px;
-    }
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    .note {
-      border: 1px solid #ead8a9; background: var(--amber-soft);
-      color: #624700; padding: 13px 15px; border-radius: 11px; margin: 14px 0;
-    }
-    .success {
-      border: 1px solid #b9dfca; background: var(--green-soft);
-      color: #15583f; padding: 13px 15px; border-radius: 11px; margin: 14px 0;
-    }
-    table { width: 100%; border-collapse: collapse; background: white; font-size: .93rem; }
-    th, td { text-align: left; vertical-align: top; padding: 12px; border-bottom: 1px solid var(--line); }
-    th { background: #edf2f8; color: #26384f; }
-    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
-    ul { padding-left: 22px; }
-    li { margin: 5px 0; }
-    .rubric td:last-child, .rubric th:last-child { text-align: center; white-space: nowrap; }
-    footer { padding: 0 20px 34px; color: var(--muted); font-size: .9rem; }
-    @media (max-width: 760px) {
-      .grid, .three { grid-template-columns: 1fr; }
-      header { padding-top: 36px; }
-      .panel, .need-card, .model-card { padding: 17px; }
-    }
-    @media print {
-      body { background: white; }
-      header { background: #18345c !important; print-color-adjust: exact; }
-      nav { display: none; }
-      .panel, .need-card, .model-card { box-shadow: none; break-inside: avoid; }
-      pre { white-space: pre-wrap; overflow-wrap: anywhere; print-color-adjust: exact; }
-      section { break-inside: auto; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquitectos NoSQL - Equipo D: Neo4j</title>
+
+    <style>
+        :root {
+            --primary: #0878B9;
+            --secondary: #075985;
+            --dark: #172B3A;
+            --text: #334155;
+            --light: #F1F7FA;
+            --border: #DCE6ED;
+            --green: #16865B;
+            --code: #17212B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #EAF0F4;
+            color: var(--text);
+            line-height: 1.6;
+            padding: 30px 15px;
+        }
+
+        .document {
+            max-width: 1050px;
+            margin: auto;
+            background: white;
+            box-shadow: 0 8px 35px rgba(0, 0, 0, 0.09);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        /* ENCABEZADO */
+
+        header {
+            background: linear-gradient(135deg, #075985, #0878B9, #1597C9);
+            color: white;
+            padding: 45px 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::after {
+            content: "◉";
+            position: absolute;
+            right: 35px;
+            top: -55px;
+            font-size: 250px;
+            color: rgba(255,255,255,0.07);
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(255,255,255,0.17);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 18px;
+        }
+
+        header h1 {
+            font-size: 32px;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header h2 {
+            font-size: 19px;
+            font-weight: 400;
+            color: #D9F1FF;
+            position: relative;
+            z-index: 1;
+        }
+
+        .metadata {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-top: 28px;
+            font-size: 13px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* CONTENIDO */
+
+        main {
+            padding: 40px 50px;
+        }
+
+        .intro {
+            background: var(--light);
+            border-left: 5px solid var(--primary);
+            padding: 20px 24px;
+            border-radius: 5px;
+            margin-bottom: 35px;
+        }
+
+        .intro strong {
+            color: var(--dark);
+        }
+
+        section {
+            margin-bottom: 35px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            color: var(--dark);
+            font-size: 21px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .number {
+            background: var(--primary);
+            color: white;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        p {
+            margin-bottom: 12px;
+            text-align: justify;
+        }
+
+        ul {
+            padding-left: 25px;
+            margin: 12px 0;
+        }
+
+        li {
+            margin-bottom: 7px;
+        }
+
+        /* MODELO */
+
+        .model-card {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            background: #F0F8FC;
+            border: 1px solid #C9E3F1;
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .model-icon {
+            width: 85px;
+            height: 85px;
+            border-radius: 14px;
+            background: #E0F2FE;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 48px;
+            flex-shrink: 0;
+        }
+
+        .model-card h3 {
+            color: var(--secondary);
+            font-size: 23px;
+            margin-bottom: 5px;
+        }
+
+        .model-label {
+            display: inline-block;
+            background: #D9F4E7;
+            color: #116344;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        /* DIAGRAMA */
+
+        .diagram {
+            background: #F8FAFC;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .diagram img {
+            max-width: 100%;
+            max-height: 270px;
+            object-fit: contain;
+        }
+
+        .diagram-caption {
+            font-size: 12px;
+            color: #64748B;
+            margin-top: 10px;
+        }
+
+        /* CÓDIGO */
+
+        .code-container {
+            background: var(--code);
+            border-radius: 9px;
+            overflow: hidden;
+            margin: 18px 0;
+        }
+
+        .code-header {
+            background: #263746;
+            color: #B9D5E5;
+            padding: 10px 16px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        pre {
+            padding: 20px;
+            overflow-x: auto;
+            color: #D9E8F2;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.65;
+            white-space: pre;
+        }
+
+        .code-comment {
+            color: #81B89B;
+        }
+
+        .code-keyword {
+            color: #78C8F5;
+        }
+
+        /* VENTAJAS Y LIMITACIONES */
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .info-card {
+            border-radius: 9px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .advantage {
+            background: #F0FAF5;
+            border-top: 4px solid var(--green);
+        }
+
+        .limitation {
+            background: #FFF8F0;
+            border-top: 4px solid #E99A38;
+        }
+
+        .info-card h3 {
+            margin-bottom: 12px;
+            color: var(--dark);
+            font-size: 16px;
+        }
+
+        /* TABLAS */
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 18px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background: #123B56;
+            color: white;
+            padding: 13px 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #F5F8FA;
+        }
+
+        tbody tr:hover {
+            background: #EAF5FA;
+        }
+
+        .recommended {
+            color: var(--green);
+            font-weight: bold;
+        }
+
+        /* JUSTIFICACIÓN */
+
+        .justification {
+            background: #F0F7FB;
+            border: 1px solid #CDE3EF;
+            border-radius: 9px;
+            padding: 22px;
+            margin-top: 15px;
+        }
+
+        .justification h3 {
+            color: var(--secondary);
+            margin-bottom: 12px;
+        }
+
+        /* CONCLUSIÓN */
+
+        .conclusion {
+            background: linear-gradient(135deg, #123B56, #075985);
+            color: white;
+            padding: 28px;
+            border-radius: 10px;
+        }
+
+        .conclusion h2 {
+            margin-bottom: 15px;
+            font-size: 21px;
+        }
+
+        .conclusion p {
+            color: #E5F2F9;
+        }
+
+        /* PIE */
+
+        footer {
+            background: #F1F5F9;
+            border-top: 1px solid var(--border);
+            padding: 22px 40px;
+            text-align: center;
+            color: #64748B;
+            font-size: 12px;
+        }
+
+        /* IMPRESIÓN */
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .document {
+                box-shadow: none;
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            header {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+
+            .code-container,
+            .conclusion,
+            th {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+
+            section {
+                break-inside: avoid;
+            }
+
+            .code-container {
+                break-inside: avoid;
+            }
+
+            footer {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+
+        @media (max-width: 650px) {
+            header {
+                padding: 30px 22px;
+            }
+
+            header h1 {
+                font-size: 25px;
+            }
+
+            main {
+                padding: 28px 20px;
+            }
+
+            .model-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metadata {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .section-title {
+                font-size: 18px;
+            }
+        }
+    </style>
 </head>
+
 <body>
-<header>
-  <div class="hero">
-    <p class="eyebrow">Administración de bases de datos · Ingeniería de Sistemas</p>
-    <h1>Arquitectos NoSQL</h1>
-    <p class="subtitle">Una empresa, cuatro modelos: propuesta de arquitectura para una plataforma que integra comercio electrónico, red social y dispositivos IoT.</p>
-    <div class="meta">
-      <span>Producto: página del grupo</span>
-      <span>Comité de arquitectura</span>
-      <span>MongoDB · Redis · Cassandra · Neo4j</span>
-    </div>
-  </div>
-</header>
 
-<main>
-  <nav aria-label="Navegación de la página">
-    <a href="#problema">1. Problema</a>
-    <a href="#modelos">2. Modelos</a>
-    <a href="#soluciones">3–7. Soluciones</a>
-    <a href="#comparacion">Comparación</a>
-    <a href="#tradeoffs">Trade-offs</a>
-    <a href="#rubrica">Rúbrica</a>
-  </nav>
+<div class="document">
 
-  <section id="problema">
-    <h2>1. Problema</h2>
-    <div class="panel">
-      <p>La empresa desarrolla una plataforma digital similar a MercadoLibre + Instagram + un sistema de logística IoT. Debe gestionar productos, usuarios, carritos, sesiones, seguidores, reseñas, recomendaciones, clicks y lecturas de sensores.</p>
-      <p>Durante el diseño, el cliente establece cuatro requisitos de alta demanda:</p>
-      <ul>
-        <li>Encontrar amigos de amigos hasta cuatro niveles de profundidad.</li>
-        <li>Almacenar 50 millones de sesiones temporales.</li>
-        <li>Administrar productos cuyos atributos cambian según la categoría.</li>
-        <li>Guardar 2.000 millones de lecturas IoT distribuidas.</li>
-      </ul>
-      <p>El reto consiste en seleccionar el modelo NoSQL que mejor responda a cada patrón de datos y consulta. No se debe asumir que una sola tecnología es la mejor para todas las necesidades.</p>
-    </div>
-  </section>
+    <!-- ENCABEZADO -->
+    <header>
+        <div class="tag">ACTIVIDAD ACADÉMICA · BASES DE DATOS NoSQL</div>
 
-  <section id="modelos">
-    <h2>2. Modelos NoSQL evaluados</h2>
-    <p class="lead">Cada modelo tiene una unidad de almacenamiento y un patrón de acceso característico.</p>
-    <div class="grid">
-      <article class="model-card">
-        <span class="tag">Documental</span>
-        <h3>MongoDB</h3>
-        <p><strong>Unidad:</strong> documento BSON dentro de una colección.</p>
-        <p><strong>Uso destacado:</strong> productos y perfiles con atributos variables.</p>
-        <p><strong>Fortaleza:</strong> flexibilidad de estructura y consultas por campos.</p>
-      </article>
-      <article class="model-card">
-        <span class="tag">Clave-valor</span>
-        <h3>Redis</h3>
-        <p><strong>Unidad:</strong> clave asociada a un valor o estructura de datos.</p>
-        <p><strong>Uso destacado:</strong> sesiones, caché y carritos.</p>
-        <p><strong>Fortaleza:</strong> acceso de baja latencia y expiración TTL.</p>
-      </article>
-      <article class="model-card">
-        <span class="tag">Columnas anchas</span>
-        <h3>Apache Cassandra</h3>
-        <p><strong>Unidad:</strong> fila identificada por una clave primaria y organizada en particiones.</p>
-        <p><strong>Uso destacado:</strong> eventos y telemetría distribuida.</p>
-        <p><strong>Fortaleza:</strong> escrituras distribuidas y escalabilidad horizontal.</p>
-      </article>
-      <article class="model-card">
-        <span class="tag">Grafos</span>
-        <h3>Neo4j</h3>
-        <p><strong>Unidad:</strong> nodos, relaciones y propiedades.</p>
-        <p><strong>Uso destacado:</strong> redes sociales y recomendaciones basadas en relaciones.</p>
-        <p><strong>Fortaleza:</strong> recorridos de conexiones entre entidades.</p>
-      </article>
-    </div>
-  </section>
+        <h1>ARQUITECTOS NoSQL</h1>
+        <h2>Una empresa, cuatro modelos</h2>
 
-  <section id="soluciones">
-    <h2>3–7. Desarrollo de las necesidades</h2>
-    <p class="lead">Cada ficha desarrolla los cinco componentes técnicos solicitados: modelo seleccionado, representación, consulta principal, ventaja, limitación y justificación.</p>
-
-    <article class="need-card">
-      <div class="need-head">
-        <div>
-          <span class="tag good">Modelo recomendado: MongoDB</span>
-          <h3>Necesidad 1. Catálogo heterogéneo</h3>
+        <div style="margin-top: 20px; font-size: 21px; font-weight: bold;">
+            EQUIPO D · NEO4J
         </div>
-        <span class="tag">Documental</span>
-      </div>
-      <div class="field">
-        <strong>1. Problema</strong>
-        <p>La tienda vende productos de distintas categorías. Un computador requiere procesador y memoria RAM; un celular requiere cámara y batería; una prenda requiere talla, color y material. Los atributos no son iguales para todos los productos.</p>
-      </div>
-      <div class="field">
-        <strong>2. Modelo seleccionado</strong>
-        <p class="model-name">MongoDB – modelo documental.</p>
-      </div>
-      <div class="field">
-        <strong>3. Representación</strong>
-        <pre><code>db.productos.insertMany([
-  {
-    nombre: "Portátil",
-    categoria: "Computadores",
-    atributos: {
-      procesador: "Intel i7",
-      ram: "16 GB",
-      almacenamiento: "512 GB SSD"
-    }
-  },
-  {
-    nombre: "Camiseta",
-    categoria: "Ropa",
-    atributos: {
-      talla: "M",
-      color: "Negro",
-      material: "Algodón"
-    }
-  }
-]);</code></pre>
-      </div>
-      <div class="field">
-        <strong>4. Consulta principal</strong>
-        <p>Buscar productos de una categoría por uno de sus atributos específicos.</p>
-        <pre><code>db.productos.find({
-  categoria: "Computadores",
-  "atributos.ram": "16 GB"
-});</code></pre>
-      </div>
-      <div class="field">
-        <strong>5. Ventaja</strong>
-        <p>Permite que cada documento tenga atributos diferentes, facilita ampliar el catálogo y consultar los campos que interesan sin imponer una estructura idéntica a todas las categorías.</p>
-      </div>
-      <div class="field">
-        <strong>6. Limitación</strong>
-        <p>La flexibilidad exige controlar la calidad y consistencia de los datos. Si se repite información en muchos documentos, mantenerla actualizada puede ser más difícil.</p>
-      </div>
-      <div class="field">
-        <strong>7. Justificación y descarte de alternativas</strong>
-        <p>MongoDB es la opción más natural porque el problema central es la variabilidad de atributos dentro de un catálogo.</p>
-        <div class="why-not">
-          <ul>
-            <li><strong>Redis:</strong> está optimizado para recuperar valores por clave; no es la mejor opción para búsquedas flexibles por numerosos atributos.</li>
-            <li><strong>Cassandra:</strong> exige diseñar tablas según consultas previstas y no ofrece la misma flexibilidad documental.</li>
-            <li><strong>Neo4j:</strong> podría modelar productos como nodos, pero las relaciones no son la necesidad principal del catálogo.</li>
-          </ul>
-        </div>
-        <p><strong>Trade-off:</strong> se gana flexibilidad de esquema, pero se debe invertir en validación de documentos, índices y control de duplicación.</p>
-      </div>
-    </article>
 
-    <article class="need-card">
-      <div class="need-head">
-        <div>
-          <span class="tag good">Modelo recomendado: Redis</span>
-          <h3>Necesidad 2. 50 millones de sesiones temporales</h3>
+        <div class="metadata">
+            <span>📚 Administración de Bases de Datos</span>
+            <span>🎓 Ingeniería de Sistemas</span>
+            <span>🗄️ Modelo orientado a grafos</span>
         </div>
-        <span class="tag">Clave-valor</span>
-      </div>
-      <div class="field">
-        <strong>1. Problema</strong>
-        <p>La plataforma debe mantener hasta 50 millones de sesiones temporales, consultarlas rápidamente y eliminar automáticamente aquellas que hayan vencido.</p>
-      </div>
-      <div class="field">
-        <strong>2. Modelo seleccionado</strong>
-        <p class="model-name">Redis – modelo clave-valor.</p>
-      </div>
-      <div class="field">
-        <strong>3. Representación</strong>
-        <p>Cada sesión se identifica con una clave única. El valor puede contener un identificador de usuario, token o datos de sesión. En producción deben protegerse los tokens y evitar almacenar secretos en texto plano.</p>
-        <pre><code>SET sesion:101 "datos_de_sesion" EX 3600
+    </header>
 
-GET sesion:101
-TTL sesion:101</code></pre>
-      </div>
-      <div class="field">
-        <strong>4. Consulta principal</strong>
-        <p>Recuperar una sesión mediante su clave y consultar su tiempo restante de vida.</p>
-        <pre><code>GET sesion:101
-TTL sesion:101</code></pre>
-      </div>
-      <div class="field">
-        <strong>5. Ventaja</strong>
-        <p>Acceso de baja latencia, estructuras de datos útiles para estados temporales y expiración automática mediante TTL.</p>
-      </div>
-      <div class="field">
-        <strong>6. Limitación</strong>
-        <p>El almacenamiento en memoria puede ser costoso. Cincuenta millones de sesiones requieren calcular la memoria real, la sobrecarga, la replicación y la capacidad del clúster.</p>
-      </div>
-      <div class="field">
-        <strong>7. Justificación y descarte de alternativas</strong>
-        <p>Redis encaja con un patrón de lectura y actualización frecuente por identificador, con vencimiento automático.</p>
-        <div class="why-not">
-          <ul>
-            <li><strong>MongoDB:</strong> puede usar índices TTL, pero no está centrado en el acceso en memoria de baja latencia.</li>
-            <li><strong>Cassandra:</strong> también admite TTL y distribución, pero añade complejidad para un acceso principalmente por clave.</li>
-            <li><strong>Neo4j:</strong> las sesiones no necesitan recorridos de relaciones ni consultas de grafos.</li>
-          </ul>
-        </div>
-        <p><strong>Trade-off:</strong> se obtiene velocidad y expiración sencilla, a cambio de dimensionar memoria, persistencia, replicación y recuperación ante fallos.</p>
-      </div>
-      <div class="note"><strong>Decisión de capacidad:</strong> no se puede asegurar que 50 millones de sesiones quepan en un clúster sin conocer el tamaño promedio de cada sesión y la memoria disponible. Se debe realizar una estimación y una prueba de carga.</div>
-    </article>
+    <main>
 
-    <article class="need-card">
-      <div class="need-head">
-        <div>
-          <span class="tag good">Modelo recomendado: Neo4j</span>
-          <h3>Necesidad 3. Red social: amigos de amigos hasta cuatro niveles</h3>
+        <!-- INTRODUCCIÓN -->
+        <div class="intro">
+            <strong>Objetivo:</strong>
+            Analizar y justificar la selección de una tecnología NoSQL
+            según las necesidades de una plataforma digital, identificando
+            las ventajas, limitaciones y características del modelo de grafos
+            mediante Neo4j.
         </div>
-        <span class="tag">Grafos</span>
-      </div>
-      <div class="field">
-        <strong>1. Problema</strong>
-        <p>La plataforma necesita encontrar usuarios conectados directa o indirectamente con una persona, recorriendo relaciones de uno a cuatro niveles.</p>
-      </div>
-      <div class="field">
-        <strong>2. Modelo seleccionado</strong>
-        <p class="model-name">Neo4j – modelo de grafos.</p>
-      </div>
-      <div class="field">
-        <strong>3. Representación</strong>
-        <p>Los usuarios son nodos y las relaciones de seguimiento o amistad son aristas dirigidas. Si la amistad es mutua, se debe representar y consultar la reciprocidad según las reglas del negocio.</p>
-        <pre><code>CREATE (ana:Usuario {id: 1, nombre: "Ana"})
-CREATE (luis:Usuario {id: 2, nombre: "Luis"})
-CREATE (maria:Usuario {id: 3, nombre: "María"})
-CREATE (ana)-[:SIGUE]->(luis)
-CREATE (luis)-[:SIGUE]->(maria);</code></pre>
-      </div>
-      <div class="field">
-        <strong>4. Consulta principal</strong>
-        <p>Encontrar usuarios alcanzables desde el usuario inicial siguiendo entre uno y cuatro vínculos.</p>
-        <pre><code>MATCH (u:Usuario {id: 1})-[:SIGUE*1..4]->(amigo:Usuario)
-WHERE amigo.id &lt;&gt; u.id
-RETURN DISTINCT amigo.nombre;</code></pre>
-      </div>
-      <div class="field">
-        <strong>5. Ventaja</strong>
-        <p>Las relaciones son elementos centrales del modelo. Neo4j facilita recorrer conexiones de varios niveles y descubrir patrones de redes sociales.</p>
-      </div>
-      <div class="field">
-        <strong>6. Limitación</strong>
-        <p>No es la opción más adecuada para almacenar de manera masiva eventos independientes o datos temporales de alta frecuencia. El rendimiento depende del tamaño y diseño del grafo y de la profundidad del recorrido.</p>
-      </div>
-      <div class="field">
-        <strong>7. Justificación y descarte de alternativas</strong>
-        <p>Neo4j representa directamente el problema como un conjunto de usuarios conectados por relaciones y permite consultar caminos de longitud variable.</p>
-        <div class="why-not">
-          <ul>
-            <li><strong>MongoDB:</strong> puede guardar listas de seguidores, pero recorrer niveles sucesivos requiere operaciones adicionales y puede complicarse al crecer la red.</li>
-            <li><strong>Redis:</strong> puede guardar conexiones en conjuntos, pero la lógica de recorrido debe construirse en la aplicación.</li>
-            <li><strong>Cassandra:</strong> es más adecuada para consultas previamente modeladas que para explorar relaciones de profundidad variable.</li>
-          </ul>
-        </div>
-        <p><strong>Trade-off:</strong> se simplifican los recorridos de relaciones, pero se debe controlar la expansión del grafo, los índices y la profundidad de búsqueda.</p>
-      </div>
-    </article>
 
-    <article class="need-card">
-      <div class="need-head">
-        <div>
-          <span class="tag good">Modelo recomendado: Cassandra</span>
-          <h3>Necesidad 4. Dos mil millones de lecturas IoT distribuidas</h3>
-        </div>
-        <span class="tag">Columnas anchas</span>
-      </div>
-      <div class="field">
-        <strong>1. Problema</strong>
-        <p>Los sensores logísticos generan 2.000 millones de lecturas con identificador de sensor, fecha, temperatura, ubicación y estado. La plataforma necesita distribuir las escrituras y consultar datos por sensor y periodo.</p>
-      </div>
-      <div class="field">
-        <strong>2. Modelo seleccionado</strong>
-        <p class="model-name">Apache Cassandra – modelo de columnas anchas.</p>
-      </div>
-      <div class="field">
-        <strong>3. Representación</strong>
-        <p>La tabla se diseña alrededor de la consulta principal. Se incluye un segmento temporal en la clave de partición para evitar particiones ilimitadas por sensor.</p>
-        <pre><code>CREATE TABLE lecturas_iot (
-  sensor_id UUID,
-  dia DATE,
-  fecha TIMESTAMP,
-  temperatura DECIMAL,
-  ubicacion TEXT,
-  estado TEXT,
-  PRIMARY KEY ((sensor_id, dia), fecha)
-) WITH CLUSTERING ORDER BY (fecha DESC);</code></pre>
-      </div>
-      <div class="field">
-        <strong>4. Consulta principal</strong>
-        <p>Consultar las lecturas de un sensor en un día determinado.</p>
-        <pre><code>SELECT *
-FROM lecturas_iot
-WHERE sensor_id = 00000000-0000-0000-0000-000000000001
-  AND dia = '2026-11-03';</code></pre>
-      </div>
-      <div class="field">
-        <strong>5. Ventaja</strong>
-        <p>Distribuye datos entre nodos, permite escrituras de alto volumen y ofrece una arquitectura diseñada para disponibilidad y escalabilidad horizontal.</p>
-      </div>
-      <div class="field">
-        <strong>6. Limitación</strong>
-        <p>No está pensada para consultas ad hoc ni uniones complejas. La clave de partición y el diseño de tablas deben responder a las consultas previstas.</p>
-      </div>
-      <div class="field">
-        <strong>7. Justificación y descarte de alternativas</strong>
-        <p>Cassandra es adecuada para escrituras distribuidas y consultas por claves de partición, sensor y ventana temporal.</p>
-        <div class="why-not">
-          <ul>
-            <li><strong>MongoDB:</strong> también puede almacenar telemetría a gran escala y es una alternativa válida; Cassandra se prioriza aquí por el patrón distribuido de escrituras y consultas modeladas.</li>
-            <li><strong>Redis:</strong> mantener dos mil millones de registros en memoria puede ser costoso y no es su uso principal como repositorio histórico masivo.</li>
-            <li><strong>Neo4j:</strong> las lecturas son eventos temporales independientes; no requieren representar relaciones como un grafo.</li>
-          </ul>
-        </div>
-        <p><strong>Trade-off:</strong> se obtiene escalabilidad para grandes volúmenes, a cambio de diseñar cuidadosamente las particiones, la retención y las consultas.</p>
-      </div>
-      <div class="note"><strong>Consideración de diseño:</strong> el tamaño de cada partición debe mantenerse controlado. El agrupamiento por día es un ejemplo; el intervalo real (hora, día u otro) debe definirse según la tasa de lecturas por sensor.</div>
-    </article>
+        <!-- 1. PROBLEMA -->
+        <section>
+            <h2 class="section-title">
+                <span class="number">1</span>
+                Problema
+            </h2>
 
-    <article class="need-card">
-      <div class="need-head">
-        <div>
-          <span class="tag good">Modelo recomendado: Redis</span>
-          <h3>Necesidad 5. Carrito de compras</h3>
-        </div>
-        <span class="tag">Clave-valor</span>
-      </div>
-      <div class="field">
-        <strong>1. Problema</strong>
-        <p>El usuario debe agregar productos, cambiar cantidades, consultar el contenido y retirar artículos antes de confirmar la compra.</p>
-      </div>
-      <div class="field">
-        <strong>2. Modelo seleccionado</strong>
-        <p class="model-name">Redis – modelo clave-valor con estructura hash.</p>
-      </div>
-      <div class="field">
-        <strong>3. Representación</strong>
-        <p>Se utiliza una clave por carrito y un hash donde cada campo identifica un producto y su valor representa la cantidad.</p>
-        <pre><code>HSET carrito:101 producto:201 2
-HSET carrito:101 producto:202 1
+            <p>
+                La empresa desarrolla una plataforma digital similar a
+                MercadoLibre e Instagram, que necesita administrar productos,
+                usuarios, compras, seguidores, reseñas y recomendaciones.
+            </p>
 
-HGETALL carrito:101</code></pre>
-      </div>
-      <div class="field">
-        <strong>4. Consulta principal</strong>
-        <p>Consultar el carrito y modificar sus artículos.</p>
-        <pre><code>HGETALL carrito:101
-HSET carrito:101 producto:201 3
-HDEL carrito:101 producto:202</code></pre>
-      </div>
-      <div class="field">
-        <strong>5. Ventaja</strong>
-        <p>Permite actualizar el estado del carrito con operaciones sencillas y rápidas. También se puede establecer una expiración para carritos abandonados.</p>
-      </div>
-      <div class="field">
-        <strong>6. Limitación</strong>
-        <p>Se debe gestionar la persistencia, la recuperación de datos y la sincronización con el proceso de compra. El carrito no debe considerarse por sí solo el registro contable definitivo de una orden.</p>
-      </div>
-      <div class="field">
-        <strong>7. Justificación y descarte de alternativas</strong>
-        <p>Redis se recomienda cuando el carrito es un estado de trabajo que cambia con frecuencia y se consulta por usuario.</p>
-        <div class="why-not">
-          <ul>
-            <li><strong>MongoDB:</strong> es una alternativa válida si se prioriza guardar carritos como documentos persistentes y consultar estructuras más complejas.</li>
-            <li><strong>Cassandra:</strong> puede almacenar carritos, pero su diseño de tablas para consultas específicas puede ser más complejo para este caso.</li>
-            <li><strong>Neo4j:</strong> el carrito no requiere analizar relaciones de varios niveles; un grafo añadiría complejidad innecesaria.</li>
-          </ul>
-        </div>
-        <p><strong>Trade-off:</strong> se prioriza velocidad de interacción, pero se necesita una estrategia para persistir y confirmar la compra de forma confiable.</p>
-      </div>
-    </article>
+            <p>
+                Después de los cambios en los requisitos, el principal problema
+                identificado para nuestro equipo es la necesidad de
+                <strong>administrar y analizar relaciones complejas entre usuarios,
+                permitiendo encontrar amigos de amigos hasta cuatro niveles
+                y generar recomendaciones de productos según las conexiones
+                y comportamientos de los usuarios.</strong>
+            </p>
 
-    <article class="need-card">
-      <div class="need-head">
-        <div>
-          <span class="tag good">Modelo recomendado: Neo4j</span>
-          <h3>Necesidad 6. Recomendaciones de productos</h3>
-        </div>
-        <span class="tag">Grafos</span>
-      </div>
-      <div class="field">
-        <strong>1. Problema</strong>
-        <p>La plataforma quiere recomendar productos a un usuario a partir de productos comprados por personas con intereses o comportamientos similares.</p>
-      </div>
-      <div class="field">
-        <strong>2. Modelo seleccionado</strong>
-        <p class="model-name">Neo4j – modelo de grafos.</p>
-      </div>
-      <div class="field">
-        <strong>3. Representación</strong>
-        <p>Se modelan usuarios, compras y productos como nodos conectados por relaciones. Por ejemplo, un usuario realiza una compra y una compra incluye productos.</p>
-        <pre><code>CREATE (u:Usuario {id: 101})
-CREATE (otro:Usuario {id: 102})
-CREATE (p:Producto {id: 201, nombre: "Portátil"})
-CREATE (c:Compra {id: 5001})
+            <p>
+                El sistema debe identificar cómo se relacionan los usuarios,
+                qué productos compran, qué personas siguen y qué intereses
+                comparten.
+            </p>
+        </section>
 
-CREATE (u)-[:REALIZO]->(c)
-CREATE (c)-[:INCLUYE]->(p)
-CREATE (otro)-[:COMPRO]->(p);</code></pre>
-      </div>
-      <div class="field">
-        <strong>4. Consulta principal</strong>
-        <p>Ejemplo simplificado: recomendar productos comprados por otros usuarios que también compraron productos del usuario consultado, excluyendo los que ya tiene.</p>
-        <pre><code>MATCH (u:Usuario {id: 101})-[:REALIZO]->(:Compra)
-      -[:INCLUYE]->(compartido:Producto)
-      &lt;-[:INCLUYE]-(:Compra)&lt;-[:REALIZO]-(otro:Usuario)
-MATCH (otro)-[:REALIZO]->(:Compra)-[:INCLUYE]->(recomendado:Producto)
+        <!-- 2. MODELO -->
+        <section>
+            <h2 class="section-title">
+                <span class="number">2</span>
+                Modelo seleccionado
+            </h2>
+
+            <div class="model-card">
+                <div class="model-icon">◉</div>
+
+                <div>
+                    <h3>Neo4j – Modelo de grafos</h3>
+                    <p>
+                        Base de datos NoSQL orientada al almacenamiento
+                        y procesamiento de relaciones entre entidades.
+                    </p>
+                    <span class="model-label">MODELO RECOMENDADO</span>
+                </div>
+            </div>
+
+            <p>
+                Seleccionamos <strong>Neo4j</strong> porque permite representar
+                información mediante nodos, relaciones y propiedades.
+            </p>
+
+            <ul>
+                <li><strong>Nodos:</strong> representan entidades como usuarios,
+                    productos y compras.</li>
+
+                <li><strong>Relaciones:</strong> representan conexiones como
+                    seguir, comprar o recomendar.</li>
+
+                <li><strong>Propiedades:</strong> almacenan características
+                    de los nodos y relaciones.</li>
+            </ul>
+
+            <p>
+                Este modelo permite consultar conexiones directas e indirectas
+                sin tener que realizar múltiples uniones entre tablas.
+            </p>
+        </section>
+
+        <!-- 3. REPRESENTACIÓN -->
+        <section>
+            <h2 class="section-title">
+                <span class="number">3</span>
+                Representación
+            </h2>
+
+            <p>
+                Para representar la plataforma se propone un grafo donde los
+                usuarios, productos y compras se conectan mediante relaciones
+                que describen sus interacciones.
+            </p>
+
+            <div class="diagram">
+                <img
+                    src="https://placehold.co/900x350/eaf4fa/075985?text=Usuarios+%E2%86%94+Relaciones+%E2%86%94+Productos"
+                    alt="Representación conceptual del grafo"
+                >
+                <div class="diagram-caption">
+                    Representación conceptual de entidades y relaciones.
+                </div>
+            </div>
+
+            <p>
+                Ejemplo de representación técnica utilizando el lenguaje Cypher:
+            </p>
+
+            <div class="code-container">
+                <div class="code-header">
+                    <span>CREACIÓN DE NODOS Y RELACIONES</span>
+                    <span>Cypher</span>
+                </div>
+
+                <pre><code><span class="code-comment">// Crear usuarios</span>
+CREATE (u1:Usuario {
+    id: 101,
+    nombre: "Carlos"
+});
+
+CREATE (u2:Usuario {
+    id: 102,
+    nombre: "Andres"
+});
+
+CREATE (u3:Usuario {
+    id: 103,
+    nombre: "Laura"
+});
+
+<span class="code-comment">// Crear producto</span>
+CREATE (p:Producto {
+    id: 201,
+    nombre: "Portatil"
+});
+
+<span class="code-comment">// Crear relaciones</span>
+MATCH (u1:Usuario {id: 101}),
+      (u2:Usuario {id: 102}),
+      (u3:Usuario {id: 103}),
+      (p:Producto {id: 201})
+
+CREATE (u1)-[:SIGUE]->(u2),
+       (u2)-[:SIGUE]->(u3),
+       (u1)-[:COMPRO]->(p);</code></pre>
+            </div>
+
+            <p>
+                En este ejemplo, Carlos sigue a Andrés, Andrés sigue a Laura
+                y Carlos compra un portátil.
+            </p>
+        </section>
+
+        <!-- 4. CONSULTA -->
+        <section>
+            <h2 class="section-title">
+                <span class="number">4</span>
+                Consulta principal
+            </h2>
+
+            <p>
+                El requisito más importante es encontrar amigos de amigos
+                hasta cuatro niveles de profundidad.
+            </p>
+
+            <div class="code-container">
+                <div class="code-header">
+                    <span>BÚSQUEDA DE AMIGOS HASTA CUATRO NIVELES</span>
+                    <span>Cypher</span>
+                </div>
+
+                <pre><code>MATCH (u:Usuario {id: 101})-[:SIGUE*1..4]->(amigo)
+RETURN DISTINCT amigo.id, amigo.nombre;</code></pre>
+            </div>
+
+            <p><strong>Explicación de la consulta:</strong></p>
+
+            <ul>
+                <li><strong>MATCH:</strong> busca patrones dentro del grafo.</li>
+                <li><strong>Usuario {id: 101}:</strong> identifica al usuario inicial.</li>
+                <li><strong>[:SIGUE*1..4]:</strong> recorre relaciones de uno a cuatro niveles.</li>
+                <li><strong>amigo:</strong> representa los usuarios encontrados.</li>
+                <li><strong>RETURN DISTINCT:</strong> devuelve los resultados sin duplicados.</li>
+            </ul>
+
+            <p>
+                También se pueden generar recomendaciones mediante las
+                relaciones de compra.
+            </p>
+
+            <div class="code-container">
+                <div class="code-header">
+                    <span>RECOMENDACIÓN DE PRODUCTOS</span>
+                    <span>Cypher</span>
+                </div>
+
+                <pre><code>MATCH (u:Usuario {id: 101})-[:COMPRO]->(:Producto)
+      <-[:COMPRO]-(otro:Usuario)
+      -[:COMPRO]->(recomendado:Producto)
+
 WHERE NOT EXISTS {
-  MATCH (u)-[:REALIZO]->(:Compra)-[:INCLUYE]->(recomendado)
+    MATCH (u)-[:COMPRO]->(recomendado)
 }
-RETURN recomendado.nombre, count(*) AS afinidad
-ORDER BY afinidad DESC
-LIMIT 10;</code></pre>
-      </div>
-      <div class="field">
-        <strong>5. Ventaja</strong>
-        <p>Permite descubrir conexiones entre usuarios y productos, recorrer relaciones y construir recomendaciones explicables a partir de patrones de compra compartidos.</p>
-      </div>
-      <div class="field">
-        <strong>6. Limitación</strong>
-        <p>El rendimiento depende del tamaño del grafo, la densidad de relaciones y el diseño de las consultas. No reemplaza necesariamente motores especializados de aprendizaje automático o ranking a gran escala.</p>
-      </div>
-      <div class="field">
-        <strong>7. Justificación y descarte de alternativas</strong>
-        <p>Neo4j resulta apropiado cuando las recomendaciones dependen de conexiones entre usuarios, compras y productos.</p>
-        <div class="why-not">
-          <ul>
-            <li><strong>MongoDB:</strong> puede guardar perfiles, historial y recomendaciones calculadas, pero explorar relaciones indirectas es menos natural.</li>
-            <li><strong>Redis:</strong> es excelente para almacenar y entregar rápidamente recomendaciones ya calculadas, pero no es la primera opción para descubrir relaciones complejas.</li>
-            <li><strong>Cassandra:</strong> puede guardar historiales y resultados precalculados, pero no está orientada a recorridos de grafos.</li>
-          </ul>
+
+RETURN DISTINCT recomendado.nombre;</code></pre>
+            </div>
+
+            <p>
+                Esta consulta identifica productos comprados por otros usuarios
+                que comparten productos comprados con el usuario inicial,
+                excluyendo aquellos que ya compró.
+            </p>
+        </section>
+
+        <!-- 5 Y 6 -->
+        <section>
+            <h2 class="section-title">
+                <span class="number">5</span>
+                Ventaja y limitación
+            </h2>
+
+            <div class="info-grid">
+
+                <div class="info-card advantage">
+                    <h3>✓ Principal ventaja</h3>
+
+                    <p>
+                        Su capacidad para representar y consultar relaciones
+                        complejas de manera natural y eficiente.
+                    </p>
+
+                    <ul>
+                        <li>Encontrar amigos de amigos hasta cuatro niveles.</li>
+                        <li>Identificar conexiones entre usuarios.</li>
+                        <li>Analizar comportamientos de compra.</li>
+                        <li>Generar recomendaciones basadas en relaciones.</li>
+                        <li>Identificar patrones de interacción social.</li>
+                    </ul>
+                </div>
+
+                <div class="info-card limitation">
+                    <h3>⚠ Principal limitación</h3>
+
+                    <p>
+                        Neo4j no es la mejor alternativa para almacenar grandes
+                        cantidades de datos independientes o temporales.
+                    </p>
+
+                    <ul>
+                        <li>Millones de sesiones temporales.</li>
+                        <li>Miles de millones de lecturas IoT.</li>
+                        <li>Eventos masivos independientes.</li>
+                    </ul>
+
+                    <p>
+                        Su rendimiento depende del diseño del grafo,
+                        los índices y la cantidad de relaciones que deban recorrerse.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 7. JUSTIFICACIÓN -->
+        <section>
+            <h2 class="section-title">
+                <span class="number">7</span>
+                Justificación
+            </h2>
+
+            <div class="justification">
+
+                <h3>¿Por qué seleccionamos Neo4j?</h3>
+
+                <p>
+                    Seleccionamos Neo4j porque los requisitos relacionados
+                    con la red social y las recomendaciones necesitan analizar
+                    conexiones entre diferentes entidades.
+                </p>
+
+                <p>
+                    Aunque MongoDB permite almacenar usuarios y seguidores,
+                    Redis puede administrar relaciones mediante conjuntos
+                    y Cassandra puede almacenar registros de conexiones,
+                    ninguna de estas tecnologías tiene como especialidad
+                    recorrer relaciones de múltiples niveles como lo hace
+                    un modelo de grafos.
+                </p>
+
+                <h3 style="margin-top: 20px;">
+                    Comparación con las otras tecnologías
+                </h3>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tecnología</th>
+                                <th>Modelo</th>
+                                <th>¿Por qué no seleccionarla para este problema?</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr>
+                                <td><strong>MongoDB</strong></td>
+                                <td>Documental</td>
+                                <td>
+                                    Su modelo documental es flexible, pero las
+                                    consultas de relaciones de varios niveles
+                                    requieren mayor complejidad.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td><strong>Redis</strong></td>
+                                <td>Clave-valor</td>
+                                <td>
+                                    Está especializado en operaciones rápidas
+                                    mediante claves y estructuras de datos,
+                                    no en recorridos complejos de grafos.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td><strong>Cassandra</strong></td>
+                                <td>Columnas anchas</td>
+                                <td>
+                                    Está diseñado para grandes volúmenes de
+                                    información distribuida y consultas
+                                    previamente definidas, no para explorar
+                                    relaciones variables entre usuarios.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td><strong>Neo4j</strong></td>
+                                <td>Grafos</td>
+                                <td class="recommended">
+                                    Seleccionado por su especialización
+                                    en relaciones complejas.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ARQUITECTURA PROPUESTA -->
+        <section>
+            <h2 class="section-title">
+                <span class="number">+</span>
+                Arquitectura recomendada
+            </h2>
+
+            <p>
+                Reconocemos que no existe una tecnología NoSQL que resuelva
+                eficientemente todos los requerimientos. Por eso proponemos
+                una arquitectura políglota que combine las cuatro tecnologías.
+            </p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Necesidad</th>
+                            <th>Tecnología</th>
+                            <th>Justificación</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td>Catálogo heterogéneo</td>
+                            <td>MongoDB</td>
+                            <td>Flexibilidad en los atributos de los productos.</td>
+                        </tr>
+
+                        <tr>
+                            <td>50 millones de sesiones</td>
+                            <td>Redis</td>
+                            <td>Acceso rápido y expiración automática.</td>
+                        </tr>
+
+                        <tr>
+                            <td>Red social</td>
+                            <td class="recommended">Neo4j</td>
+                            <td>Recorrido de relaciones de hasta cuatro niveles.</td>
+                        </tr>
+
+                        <tr>
+                            <td>2.000 millones de lecturas IoT</td>
+                            <td>Cassandra</td>
+                            <td>Almacenamiento distribuido y escrituras masivas.</td>
+                        </tr>
+
+                        <tr>
+                            <td>Carrito de compras</td>
+                            <td>Redis</td>
+                            <td>Actualizaciones rápidas de productos y cantidades.</td>
+                        </tr>
+
+                        <tr>
+                            <td>Recomendaciones</td>
+                            <td class="recommended">Neo4j</td>
+                            <td>Análisis de relaciones entre usuarios y productos.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- CONCLUSIÓN -->
+        <div class="conclusion">
+            <h2>Conclusión</h2>
+
+            <p>
+                Neo4j es la mejor elección para las necesidades de red social
+                y recomendaciones de la empresa. Sin embargo, reconocemos que
+                no existe una tecnología NoSQL que resuelva eficientemente
+                todos los requerimientos.
+            </p>
+
+            <p>
+                Por eso proponemos una arquitectura políglota que combine
+                MongoDB, Redis, Cassandra y Neo4j, aprovechando las fortalezas
+                de cada modelo de almacenamiento.
+            </p>
+
+            <p>
+                La selección de una base de datos debe responder a las
+                características de los datos, los patrones de consulta,
+                el rendimiento y la escalabilidad que requiere el negocio.
+            </p>
         </div>
-        <p><strong>Trade-off:</strong> se facilita descubrir relaciones y patrones, pero puede ser conveniente combinar Neo4j con Redis para almacenar en caché los resultados más consultados.</p>
-      </div>
-    </article>
-  </section>
 
-  <section id="comparacion">
-    <h2>Comparación general de decisiones</h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>Necesidad</th><th>Modelo recomendado</th><th>Patrón de acceso determinante</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Catálogo heterogéneo</td><td>MongoDB</td><td>Documentos con atributos variables y búsqueda por campos.</td></tr>
-          <tr><td>50 millones de sesiones</td><td>Redis</td><td>Acceso por clave, actualización frecuente y TTL.</td></tr>
-          <tr><td>Red social hasta cuatro niveles</td><td>Neo4j</td><td>Recorridos de relaciones entre usuarios.</td></tr>
-          <tr><td>2.000 millones de lecturas IoT</td><td>Cassandra</td><td>Escrituras distribuidas y consultas por sensor/tiempo.</td></tr>
-          <tr><td>Carrito</td><td>Redis</td><td>Actualizaciones rápidas del estado temporal.</td></tr>
-          <tr><td>Recomendaciones</td><td>Neo4j</td><td>Relaciones entre usuarios, compras y productos.</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="success"><strong>Conclusión arquitectónica:</strong> se recomienda persistencia políglota. Cada motor se utiliza donde su modelo aporta una ventaja clara, y la aplicación integra los datos entre servicios.</div>
-  </section>
+    </main>
 
-  <section id="tradeoffs">
-    <h2>Pregunta final: ¿por qué NO seleccionar las otras tres tecnologías?</h2>
-    <div class="panel">
-      <p>El comité no debe limitarse a decir que una tecnología es buena. Debe explicar qué se gana y qué se sacrifica al seleccionarla, y por qué las alternativas no son las primeras opciones para ese requisito.</p>
-      <h3>Trade-offs que deben quedar explícitos</h3>
-      <ul>
-        <li><strong>MongoDB:</strong> flexibilidad documental a cambio de que las relaciones profundas requieren más trabajo de modelado o consultas adicionales.</li>
-        <li><strong>Redis:</strong> baja latencia a cambio de una planificación cuidadosa de memoria, persistencia y capacidad.</li>
-        <li><strong>Cassandra:</strong> distribución y escritura masiva a cambio de modelar las tablas para consultas concretas y administrar particiones.</li>
-        <li><strong>Neo4j:</strong> recorridos eficientes de relaciones a cambio de que no sea la opción principal para eventos independientes o datos temporales masivos.</li>
-      </ul>
-      <h3>Preguntas para la defensa</h3>
-      <ol>
-        <li>¿Qué patrón de consulta determinó la selección?</li>
-        <li>¿Qué ventaja concreta se obtiene con el modelo elegido?</li>
-        <li>¿Qué limitación o costo se acepta?</li>
-        <li>¿Por qué cada una de las otras tres tecnologías sería menos conveniente como primera opción?</li>
-        <li>¿En qué caso una de las alternativas descartadas sí podría ser una opción válida?</li>
-      </ol>
-    </div>
-  </section>
+    <!-- PIE DE PÁGINA -->
+    <footer>
+        <strong>ARQUITECTOS NoSQL · EQUIPO D · NEO4J</strong>
+        <br>
+        Administración de Bases de Datos | Ingeniería de Sistemas
+        <br>
+        Documento académico – Modelo orientado a grafos
+    </footer>
 
+</div>
 
-  <section>
-    <h2>Conclusión</h2>
-    <div class="panel">
-      <p>La selección de una base de datos NoSQL debe partir de la naturaleza de los datos, el volumen, la velocidad de escritura, la estructura de las relaciones y las consultas que ejecutará la aplicación.</p>
-      <p>MongoDB, Redis, Cassandra y Neo4j resuelven problemas distintos. La arquitectura propuesta combina sus fortalezas en lugar de forzar todas las necesidades dentro de un solo motor.</p>
-      <p><strong>La decisión de un arquitecto de bases de datos no consiste en elegir una tecnología universal, sino en justificar técnicamente cuál es la más conveniente para cada necesidad y reconocer los compromisos de esa elección.</strong></p>
-    </div>
-  </section>
-</main>
-
-<footer>
-  <p>Actividad académica: “Arquitectos NoSQL: una empresa, cuatro modelos” · Administración de Bases de Datos · Ingeniería de Sistemas.</p>
-  <p>Los ejemplos son ilustrativos. Antes de implementarlos en producción, se deben validar versiones, tipos de datos, índices, seguridad, capacidad y requisitos de consistencia.</p>
-</footer>
 </body>
 </html>
